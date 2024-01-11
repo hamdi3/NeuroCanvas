@@ -1,6 +1,5 @@
 import streamlit as st
 import networkx as nx
-import matplotlib.pyplot as plt
 
 from utils.menu import render_menu
 from utils.visualize_model import visualize_model
