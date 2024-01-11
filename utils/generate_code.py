@@ -46,7 +46,6 @@ def generate_trainer_code(components):
             code_string += f"optim = torch.optim.{component_type}(model.parameters(),{params})\n\n"
             counter += 1
 
-    print(counter)
     if counter != 3:
         code_string += "# You're still messing some components have you checked if a dataset, loss function and optimizer are added?"
 

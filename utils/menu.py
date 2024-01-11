@@ -328,11 +328,11 @@ def render_train_menu():
     col1, col2 = st.sidebar.columns(2)
 
     # Add the layer when the button in the first column is clicked
-    if col1.button(f'Add {component} layer'):
+    if col1.button(f'Add {component} component'):
         add_to_trainer(option, component, component_params)
 
     # Delete the last layer when the button in the second column is clicked
-    if col2.button('Delete last layer', type="primary"):
+    if col2.button('Delete last component', type="primary"):
         delete_from_trainer()
 
 
