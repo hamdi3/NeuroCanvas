@@ -64,4 +64,4 @@ def visualize_model():
     with tab2:
         draw_graph()
     with tab3:
-        st.code(f"""{create_nn_code(st.session_state.layers)}""", language="python")
+        create_nn_code(st.session_state["layers"])

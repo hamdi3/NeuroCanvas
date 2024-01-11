@@ -1,4 +1,5 @@
 import re
+import streamlit as st
 
 def create_nn_code(layers):
     code_string = "import torch.nn as nn\n\n"
@@ -11,5 +12,7 @@ def create_nn_code(layers):
         code_string += "\n"
 
     code_string += ")"
-    return code_string
+
+    code = st.code(f"""{code_string}""", language="python")
+    return code
 
