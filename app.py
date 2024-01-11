@@ -2,7 +2,7 @@ import streamlit as st
 import networkx as nx
 
 from utils.menu import render_menu
-from utils.visualize_model import visualize_model
+from utils.visualizer import visualize_model, visualize_trainer
 
 # Define page config
 st.set_page_config(page_title="NeuroCanvas", page_icon="🎨", layout="wide", initial_sidebar_state="auto",
@@ -14,6 +14,7 @@ st.set_page_config(page_title="NeuroCanvas", page_icon="🎨", layout="wide", in
 # Initialize an empty list to store the layers
 if "layers" and "G" not in st.session_state:
     st.session_state["layers"] = []
+    st.session_state["trainer"] = []
     st.session_state["G"] = nx.DiGraph()
 
 
@@ -26,8 +27,13 @@ def main():
     # Render the selection menu
     render_menu()
 
+    st.header(":blue[Model]")
     # Visualize the model
     visualize_model()
+
+    st.header(":orange[Trainer]")
+    # Visualize the trainer
+    visualize_trainer()
 
 if __name__ == "__main__":
     main()
