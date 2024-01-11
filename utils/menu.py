@@ -26,8 +26,7 @@ def add_layer(layer_type, layer_params):
 
     st.toast('layer added', icon="✅")
 
-
-def render_menu():
+def render_model_menu():
     # Define the categories
     categories = {
         'Linear Layers': ['Linear', 'Bilinear'],
@@ -151,7 +150,7 @@ def render_menu():
         on = st.sidebar.toggle('Show optional parameters?')
         if on:
             layer_params['eps'] = st.sidebar.number_input(
-                'Eps', value=1e-5, step=1e-5, help="a value added to the denominator for numerical stability")
+                'Eps', value=1e-5, step=1e-5,format="%.5e", help="a value added to the denominator for numerical stability")
             layer_params['momentum'] = st.sidebar.number_input(
                 'Momentum', value=0.1, step=0.1, help="the value used for the running_mean and running_var computation. Can be set to None for cumulative moving average (i.e. simple average)")
             layer_params['affine'] = st.sidebar.checkbox(
@@ -167,7 +166,7 @@ def render_menu():
         on = st.sidebar.toggle('Show optional parameters?')
         if on:
             layer_params['eps'] = st.sidebar.number_input(
-                'Eps', value=1e-5, step=1e-5, help="a value added to the denominator for numerical stability")
+                'Eps', value=1e-5, step=1e-5, format="%.5e", help="a value added to the denominator for numerical stability")
             layer_params['affine'] = st.sidebar.checkbox(
                 'Affine', value=True, help="when set to True, this module has learnable affine parameters")
 
@@ -208,7 +207,8 @@ def render_menu():
         layer_params['dim'] = st.sidebar.number_input(
             'dimension', value=0, help="A dimension along which Softmax will be computed (so every slice along dim will sum to 1)")
 
-    # Create two columns
+    ############################## Buttons ###########################################
+    # Create two columns to add the buttons next to one another
     col1, col2 = st.sidebar.columns(2)
 
     # Add the layer when the button in the first column is clicked
@@ -218,3 +218,128 @@ def render_menu():
     # Delete the last layer when the button in the second column is clicked
     if col2.button('Delete last layer', type="primary"):
         delete_layer()
+
+def delete_from_trainer():
+    # Delete the last added layer
+    if st.session_state.trainer:
+        st.session_state.trainer.pop()
+    st.toast('Trainer Component deleted', icon="⛔")
+
+def add_to_trainer(option, component, params):
+    # Check if the component has already been added
+    if any(option == comp["Type"] for comp in st.session_state.trainer):
+        st.toast(f'You already have that component', icon="❌")
+    else:
+        # Add the configured layer to the network
+        st.session_state.trainer.append({
+            'Type': option,
+            'Component': component,
+            'Parameters': ', '.join(f'{key.replace("_"," ")}: {value}' for key, value in params.items())
+        })
+
+        st.toast('Component added to trainer', icon="✅")
+
+
+def render_train_menu():
+    # Define the training options
+    training_options = {
+        'Datasets': ['MNIST', 'FashionMNIST'],
+        'Loss Function': ['MSELoss', 'CrossEntropyLoss'],
+        'Optimizers': ['Adagrad', 'Adam'],
+    }
+
+    # Initialize the trainer parameters dictionary
+    component_params = {}
+    
+    # Create a dropdown for the training options
+    option = st.sidebar.selectbox(
+        'Select the training option', list(training_options.keys()))
+
+    # Create a dropdown for the specific training option
+    component = st.sidebar.selectbox(
+        f'Select the specific {option}', training_options[option])
+    
+    ############################## Loss Functions ###################################
+    if component == 'MSELoss':
+        on = st.sidebar.toggle('Show optional parameters?')
+        if on:
+            component_params['size_average'] = st.sidebar.checkbox(
+                'Average the Losses', value=True, help="By default, the losses are averaged over each loss element in the batch. Note that for some losses, there are multiple elements per sample. If the field size_average is set to False, the losses are instead summed for each minibatch")
+            component_params['reduce'] = st.sidebar.checkbox(
+                'Reduce', value=True, help="By default, the losses are averaged or summed over observations for each minibatch depending on size_average. When reduce is False, returns a loss per batch element instead and ignores size_average")
+            component_params['reduction'] = st.sidebar.selectbox('Select Type of Reduction', ['mean' , 'sum', 'none'],
+                help="Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'. 'none': no reduction will be applied, 'mean': the sum of the output will be divided by the number of elements in the output, 'sum': the output will be summed. Note: size_average and reduce are in the process of being deprecated, and in the meantime, specifying either of those two args will override reduction")
+    
+    elif component == 'CrossEntropyLoss':
+        on = st.sidebar.toggle('Show optional parameters?')
+        if on:
+            component_params['size_average'] = st.sidebar.checkbox(
+                'Average the Losses', value=True, help="By default, the losses are averaged over each loss element in the batch. Note that for some losses, there are multiple elements per sample. If the field size_average is set to False, the losses are instead summed for each minibatch")
+            component_params['ignore_index'] = st.sidebar.number_input(
+                'Index to Ignore', value=-100, help="Specifies a target value that is ignored and does not contribute to the input gradient. When size_average is True, the loss is averaged over non-ignored targets. Note that ignore_index is only applicable when the target contains class indices")
+            component_params['reduce'] = st.sidebar.checkbox(
+                'Reduce', value=True, help="By default, the losses are averaged or summed over observations for each minibatch depending on size_average. When reduce is False, returns a loss per batch element instead and ignores size_average")
+            component_params['reduction'] = st.sidebar.selectbox('Select Type of Reduction', ['mean' , 'sum', 'none'],
+                help="Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum'. 'none': no reduction will be applied, 'mean': the sum of the output will be divided by the number of elements in the output, 'sum': the output will be summed. Note: size_average and reduce are in the process of being deprecated, and in the meantime, specifying either of those two args will override reduction")
+            component_params['label_smoothing'] = st.sidebar.number_input(
+                'Label Smooting Value', value=0.0, min_value=0.0, max_value=1.0, step=0.1, help="Specifies the amount of smoothing when computing the loss, where 0.0 means no smoothing. The targets become a mixture of the original ground truth and a uniform distribution as described in Rethinking the Inception Architecture for Computer Vision")
+
+    ############################## Optimizers ########################################
+    elif component == 'Adagrad':
+        on = st.sidebar.toggle('Show optional parameters?')
+        if on:
+            component_params['lr'] = st.sidebar.number_input(
+                'Learning Rate', value=1e-2, step=1e-2, format="%.2e")
+            component_params['lr_decay'] = st.sidebar.number_input(
+                'Learning Rate Decay', value=0.0, step=1e-1, format="%.1e")
+            component_params['weight_decay'] = st.sidebar.number_input(
+                'Weight Decay', value=0.0, step=1e-1, format="%.1e", help="This uses L2 penalty")
+            component_params['eps'] = st.sidebar.number_input(
+                'Epsilon', value=1e-10, step=1e-10,format="%.10e", help="term added to the denominator to improve numerical stability")
+            component_params['foreach'] = st.sidebar.checkbox(
+                'For Each Cuda Device', value=None, help="whether foreach implementation of optimizer is used. If unspecified by the user (so foreach is None), we will try to use foreach over the for-loop implementation on CUDA, since it is usually significantly more performant. Note that the foreach implementation uses ~ sizeof(params) more peak memory than the for-loop version due to the intermediates being a tensorlist vs just one tensor. If memory is prohibitive, batch fewer parameters through the optimizer at a time or switch this flag to False")
+            component_params['maximize'] = st.sidebar.checkbox(
+                'Maximize Parameters', value=False, help="maximize the params based on the objective, instead of minimizing")
+            component_params['differentiable'] = st.sidebar.checkbox(
+                'Differentiable', value=False, help="whether autograd should occur through the optimizer step in training. Otherwise, the step() function runs in a torch.no_grad() context. Setting to True can impair performance, so leave it False if you dont intend to run autograd through this instance")
+    
+    elif component == 'Adam':
+        on = st.sidebar.toggle('Show optional parameters?')
+        if on:
+            component_params['lr'] = st.sidebar.number_input(
+                'Learning Rate', value=1e-2, step=1e-2, format="%.2e")
+            component_params['eps'] = st.sidebar.number_input(
+                'Epsilon', value=1e-10, step=1e-10, format="%.10e", help="term added to the denominator to improve numerical stability")
+            component_params['weight_decay'] = st.sidebar.number_input(
+                'Weight Decay', value=0.0, step=1e-1, format="%.1e", help="This uses L2 penalty")            
+            component_params['amsgrad'] = st.sidebar.checkbox(
+                'Use AMSGrad variant', value=False, help="whether to use the AMSGrad variant of this algorithm from the paper On the Convergence of Adam and Beyond")
+            component_params['foreach'] = st.sidebar.checkbox(
+                'For Each Cuda Device', value=None, help="whether foreach implementation of optimizer is used. If unspecified by the user (so foreach is None), we will try to use foreach over the for-loop implementation on CUDA, since it is usually significantly more performant. Note that the foreach implementation uses ~ sizeof(params) more peak memory than the for-loop version due to the intermediates being a tensorlist vs just one tensor. If memory is prohibitive, batch fewer parameters through the optimizer at a time or switch this flag to False")
+            component_params['maximize'] = st.sidebar.checkbox(
+                'Maximize Parameters', value=False, help="maximize the params based on the objective, instead of minimizing")
+            component_params['capturable'] = st.sidebar.checkbox(
+                'Capture in a CUDA Graph', value=False, help="whether this instance is safe to capture in a CUDA graph. Passing True can impair ungraphed performance, so if you dont intend to graph capture this instance, leave it")
+            component_params['differentiable'] = st.sidebar.checkbox(
+                'Differentiable', value=False, help="whether autograd should occur through the optimizer step in training. Otherwise, the step() function runs in a torch.no_grad() context. Setting to True can impair performance, so leave it False if you dont intend to run autograd through this instance")
+
+    ############################## Buttons ###########################################
+    # Create two columns to add the buttons next to one another
+    col1, col2 = st.sidebar.columns(2)
+
+    # Add the layer when the button in the first column is clicked
+    if col1.button(f'Add {component} layer'):
+        add_to_trainer(option, component, component_params)
+
+    # Delete the last layer when the button in the second column is clicked
+    if col2.button('Delete last layer', type="primary"):
+        delete_from_trainer()
+
+
+def render_menu():
+    # Create a switcher for the menus
+    menu = st.sidebar.radio('Menu', ['Model', 'Trainer'])
+    if menu == 'Model':
+        render_model_menu()
+    else:
+        render_train_menu()
