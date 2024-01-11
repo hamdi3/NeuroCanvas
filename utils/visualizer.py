@@ -2,27 +2,28 @@ import streamlit as st
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from utils.generate_code import create_nn_code
+from utils.generate_code import create_nn_code, generate_trainer_code
+
+COLOR_MAP = {
+    'Linear': 'lightblue',
+    'Bilinear': 'deepskyblue',
+    'Conv2D': 'lightcoral',
+    'ConvTranspose2d': 'indianred',
+    'MaxPool2d': 'lightgreen',
+    'AvgPool2d': 'darkseagreen',
+    'BatchNorm2d': 'plum',
+    'GroupNorm': 'mediumorchid',
+    'Dropout': 'lightyellow',
+    'Embedding': 'lightsalmon',
+    'ReLU': 'lightpink',
+    'Sigmoid': 'peachpuff',
+    'Softmax': 'mistyrose'
+}
+
 
 def draw_graph():
-    color_map = {
-        'Linear': 'lightblue',
-        'Bilinear': 'deepskyblue',
-        'Conv2D': 'lightcoral',
-        'ConvTranspose2d': 'indianred',
-        'MaxPool2d': 'lightgreen',
-        'AvgPool2d': 'darkseagreen',
-        'BatchNorm2d': 'plum',
-        'GroupNorm': 'mediumorchid',
-        'Dropout': 'lightyellow',
-        'Embedding': 'lightsalmon',
-        'ReLU': 'lightpink',
-        'Sigmoid': 'peachpuff',
-        'Softmax': 'mistyrose'
-    }
-
     # Get the colors for the nodes
-    node_colors = [color_map[st.session_state.G.nodes[i]['label']]
+    node_colors = [COLOR_MAP[st.session_state.G.nodes[i]['label']]
                    for i in st.session_state.G.nodes]
 
     # Initialize the position dictionary
@@ -56,12 +57,22 @@ def draw_graph():
 
     st.pyplot(plt.gcf())
 
+
 def visualize_model():
     # Display the network configuration
-    tab1, tab2, tab3 = st.tabs(["Layers Table", "Layers Graph", "Generated Code"])
+    tab1, tab2, tab3 = st.tabs(
+        ["Layers Table", "Layers Graph", "Generated Code"])
     with tab1:
         st.table(st.session_state["layers"])
     with tab2:
         draw_graph()
     with tab3:
         create_nn_code(st.session_state["layers"])
+
+
+def visualize_trainer():
+    tab1, tab2 = st.tabs(["Component Table", "Generated Code"])
+    with tab1:
+        st.table(st.session_state["trainer"])
+    with tab2:
+        generate_trainer_code(st.session_state["trainer"])
