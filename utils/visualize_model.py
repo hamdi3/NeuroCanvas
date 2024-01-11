@@ -2,6 +2,8 @@ import streamlit as st
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from utils.generate_code import create_nn_code
+
 def draw_graph():
     color_map = {
         'Linear': 'lightblue',
@@ -56,8 +58,10 @@ def draw_graph():
 
 def visualize_model():
     # Display the network configuration
-    tab1, tab2 = st.tabs(["Layers Table", "Layers Graph"])
+    tab1, tab2, tab3 = st.tabs(["Layers Table", "Layers Graph", "Generated Code"])
     with tab1:
         st.table(st.session_state["layers"])
     with tab2:
         draw_graph()
+    with tab3:
+        st.code(f"""{create_nn_code(st.session_state.layers)}""", language="python")
