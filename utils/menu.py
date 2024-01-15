@@ -30,7 +30,7 @@ def render_model_menu():
     # Define the categories
     categories = {
         'Linear Layers': ['Linear', 'Bilinear'],
-        'Convolution Layers': ['Conv2D', 'ConvTranspose2d'],
+        'Convolution Layers': ['Conv2d', 'ConvTranspose2d'],
         'Pooling layers': ['MaxPool2d', 'AvgPool2d'],
         'Normalization Layers': ['BatchNorm2d', 'GroupNorm'],
         'Dropout Layers': ['Dropout'],
@@ -70,7 +70,7 @@ def render_model_menu():
             'Bias', value=False, help="adds a learnable bias to the output.")
 
     ############################## Convolution Layers #######################
-    elif layer_type == 'Conv2D':
+    elif layer_type == 'Conv2d':
         layer_params['in_channels'] = st.sidebar.number_input(
             'Input Size', value=0, help="Number of input features")
         layer_params['out_channels'] = st.sidebar.number_input(

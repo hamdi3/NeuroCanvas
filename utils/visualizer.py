@@ -1,13 +1,16 @@
 import streamlit as st
 import networkx as nx
 import matplotlib.pyplot as plt
+import torch
+import torchvision
+import torch.nn.functional as F
 
-from utils.generate_code import create_nn_code, generate_trainer_code
+from utils.codes import create_nn_code, generate_trainer_code
 
 COLOR_MAP = {
     'Linear': 'lightblue',
     'Bilinear': 'deepskyblue',
-    'Conv2D': 'lightcoral',
+    'Conv2d': 'lightcoral',
     'ConvTranspose2d': 'indianred',
     'MaxPool2d': 'lightgreen',
     'AvgPool2d': 'darkseagreen',
@@ -57,6 +60,8 @@ def draw_graph():
 
     st.pyplot(plt.gcf())
 
+def visualize_code(code_string):
+    st.code(f"""{code_string}""", language="python")
 
 def visualize_model():
     # Display the network configuration
@@ -67,7 +72,7 @@ def visualize_model():
     with tab2:
         draw_graph()
     with tab3:
-        create_nn_code(st.session_state["layers"])
+        visualize_code(create_nn_code(st.session_state["layers"]))
 
 
 def visualize_trainer():
@@ -75,4 +80,42 @@ def visualize_trainer():
     with tab1:
         st.table(st.session_state["trainer"])
     with tab2:
-        generate_trainer_code(st.session_state["trainer"])
+        trainer_code, _ = generate_trainer_code(st.session_state["trainer"])
+        visualize_code(trainer_code)
+
+def visualize_model_preformance():
+    model = torch.jit.load('model_scripted.pt')  # Load the scripted model
+    model.eval()  # Set the model to evaluation mode
+
+    # Loading the testing dataset
+    for comp in st.session_state["trainer"]:
+        if comp['Component'] == 'MNIST':
+            test_data = torchvision.datasets.MNIST(root='data', train=False, download=True, transform=torchvision.transforms.ToTensor())
+        elif comp['Component'] == 'FashionMNIST':
+            test_data = torchvision.datasets.FashionMNIST(root='data', train=False, download=True, transform=torchvision.transforms.ToTensor())
+    
+    # Visualizing the graph
+    figure = plt.figure(figsize=(12, 12))
+    cols, rows = 3, 4
+
+    for i in range(1, cols * rows + 1):
+        # Making the prediction
+        sample_idx = torch.randint(len(test_data), size=(1,)).item() 
+        img, label = test_data[sample_idx]
+
+        # Pass the input data through the model
+        output = model(img.view(img.shape[0], -1))
+
+        # Apply softmax to get probabilities
+        probabilities = F.softmax(output, dim=1)
+
+        # Get the class with the highest probability
+        _, pred = torch.max(probabilities, dim=1)
+
+        # Adding the subplots
+        figure.add_subplot(rows, cols, i)
+        plt.title(f"Pred: {pred.item()}, Label: {label}", fontdict={"fontsize": 14, "color": ("green" if pred == label else "red")})
+        plt.axis("off")
+        plt.imshow(img.cpu().squeeze()) 
+
+    st.pyplot(figure)

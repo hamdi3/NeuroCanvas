@@ -1,8 +1,9 @@
 import streamlit as st
 import networkx as nx
 
+from utils.codes import execute_code
 from utils.menu import render_menu
-from utils.visualizer import visualize_model, visualize_trainer
+from utils.visualizer import visualize_model, visualize_model_preformance, visualize_trainer
 
 # Define page config
 st.set_page_config(page_title="NeuroCanvas", page_icon="🎨", layout="wide", initial_sidebar_state="auto",
@@ -28,12 +29,22 @@ def main():
     render_menu()
 
     st.header(":blue[Model]")
-    # Visualize the model
-    visualize_model()
+    with st.expander("Show Model Section",True):
+        # Visualize the model
+        visualize_model()
 
     st.header(":orange[Trainer]")
-    # Visualize the trainer
-    visualize_trainer()
+    with st.expander("Show Trainer Section",True):
+        # Visualize the trainer
+        visualize_trainer()
+
+    if st.button(f'Train Model'):
+        st.header("Training Outputs")
+        tab1, tab2 = st.tabs(["Code Output", "Model Preformance"])
+        with tab1:
+            execute_code()
+        with tab2:
+            visualize_model_preformance()
 
 if __name__ == "__main__":
     main()
