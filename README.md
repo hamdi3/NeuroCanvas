@@ -15,7 +15,8 @@ Welcome to the NeuroCanvas GitHub repository! This project aims to help those wi
   - The user can view the model as a table or a directed graph.
   - Additionally a code is generated for the made model.
 - Same thing goes for the trainer menu except no graph.
-  - Keeping in mind that the user can only add one optimizer and one dataset to avoid any issues with the generated code.  
+  - Keeping in mind that the user can only add one optimizer and one dataset to avoid any issues with the generated code.
+- You can train models and see the visual evaluations- **This is still unstable and was tested with linear models** 
 - Deployed web application accessible at [https://neurocanvas.streamlit.app/](https://neurocanvas.streamlit.app/)
 
 ## Getting Started
